@@ -205,6 +205,7 @@ SVfitStandaloneAlgorithm::SVfitStandaloneAlgorithm(const std::vector<svFitStanda
   : fitStatus_(-1), 
     verbosity_(verbosity), 
     maxObjFunctionCalls_(10000),
+    standaloneObjectiveFunctionAdapterMINUIT_(0),
     standaloneObjectiveFunctionAdapterVEGAS_(0),
     mcObjectiveFunctionAdapter_(0),
     mcPtEtaPhiMassAdapter_(0),
@@ -284,7 +285,8 @@ SVfitStandaloneAlgorithm::SVfitStandaloneAlgorithm(const std::vector<svFitStanda
   nll_ = new svFitStandalone::SVfitStandaloneLikelihood(measuredTauLeptons_rounded, measuredMET_rounded, covMET_rounded, (verbosity_ >= 2));
   nllStatus_ = nll_->error();
 
-  standaloneObjectiveFunctionAdapterVEGAS_ = new svFitStandalone::ObjectiveFunctionAdapterVEGAS();
+  standaloneObjectiveFunctionAdapterVEGAS_ = new svFitStandalone::ObjectiveFunctionAdapterVEGAS(*nll_);
+  standaloneObjectiveFunctionAdapterMINUIT_ = new svFitStandalone::ObjectiveFunctionAdapterMINUIT(*nll_);
   
   clock_ = new TBenchmark();
 }
@@ -293,6 +295,7 @@ SVfitStandaloneAlgorithm::~SVfitStandaloneAlgorithm()
 {
   delete nll_;
   delete minimizer_;
+  delete standaloneObjectiveFunctionAdapterMINUIT_;
   delete standaloneObjectiveFunctionAdapterVEGAS_;
   delete mcObjectiveFunctionAdapter_;
   delete mcPtEtaPhiMassAdapter_;
@@ -451,7 +454,7 @@ SVfitStandaloneAlgorithm::fit()
   minimizer_->SetPrintLevel(-1);
 
   // setup the function to be called and the dimension of the fit
-  ROOT::Math::Functor toMinimize(standaloneObjectiveFunctionAdapterMINUIT_, nll_->measuredTauLeptons().size()*svFitStandalone::kMaxFitParams);
+  ROOT::Math::Functor toMinimize(*standaloneObjectiveFunctionAdapterMINUIT_, nll_->measuredTauLeptons().size()*svFitStandalone::kMaxFitParams);
   minimizer_->SetFunction(toMinimize); 
   setup();
   minimizer_->SetMaxFunctionCalls(maxObjFunctionCalls_);
@@ -823,10 +826,10 @@ SVfitStandaloneAlgorithm::integrateMarkovChain(const std::string& likelihoodFile
                          initMode, numIterBurnin, numIterSampling, numIterSimAnnealingPhase1, numIterSimAnnealingPhase2,
 			 T0, alpha, numChains, numBatches, L, epsilon0, nu,
 			 verbosity);
-    mcObjectiveFunctionAdapter_ = new MCObjectiveFunctionAdapter();
+    mcObjectiveFunctionAdapter_ = new MCObjectiveFunctionAdapter(*nll_);
     integrator2_->setIntegrand(*mcObjectiveFunctionAdapter_);
     integrator2_nDim_ = 0;
-    mcPtEtaPhiMassAdapter_ = new MCPtEtaPhiMassAdapter();
+    mcPtEtaPhiMassAdapter_ = new MCPtEtaPhiMassAdapter(*nll_);
     integrator2_->registerCallBackFunction(*mcPtEtaPhiMassAdapter_);
     isInitialized2_ = true;    
   }

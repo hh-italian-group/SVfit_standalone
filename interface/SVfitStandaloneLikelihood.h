@@ -246,7 +246,7 @@ namespace svFitStandalone
     /// default destructor
     ~SVfitStandaloneLikelihood() {}
     /// static pointer to this (needed for the minuit function calls)
-    static const SVfitStandaloneLikelihood* gSVfitStandaloneLikelihood;
+//    static const SVfitStandaloneLikelihood* gSVfitStandaloneLikelihood;
 
     /// add an additional logM(tau,tau) term to the nll to suppress tails on M(tau,tau) (default is false)
     void addLogM(bool value, double power = 1.) { addLogM_ = value; powerLogM_ = power; }

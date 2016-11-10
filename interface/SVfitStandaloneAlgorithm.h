@@ -40,24 +40,28 @@ namespace svFitStandalone
   class ObjectiveFunctionAdapterMINUIT
   {
   public:
+    ObjectiveFunctionAdapterMINUIT(const SVfitStandaloneLikelihood& _likelihood) : likelihood(&_likelihood) {}
     double operator()(const double* x) const // NOTE: return value = -log(likelihood)
     {
-      double prob = SVfitStandaloneLikelihood::gSVfitStandaloneLikelihood->prob(x);
+      double prob = likelihood->prob(x);
       double nll;
       if ( prob > 0. ) nll = -TMath::Log(prob);
       else nll = std::numeric_limits<float>::max();
       return nll;
     }
+
+    const SVfitStandaloneLikelihood* likelihood;
   };
   // for VEGAS integration
   void map_xVEGAS(const double*, bool, bool, bool, bool, bool, double, double, double*);
   class ObjectiveFunctionAdapterVEGAS
   {
   public:
+    ObjectiveFunctionAdapterVEGAS(const SVfitStandaloneLikelihood& _likelihood) : likelihood(&_likelihood) {}
     double Eval(const double* x) const // NOTE: return value = likelihood, **not** -log(likelihood)
     {
       map_xVEGAS(x, l1isLep_, l2isLep_, marginalizeVisMass_, shiftVisMass_, shiftVisPt_, mvis_, mtest_, x_mapped_);      
-      double prob = SVfitStandaloneLikelihood::gSVfitStandaloneLikelihood->prob(x_mapped_, true, mtest_);
+      double prob = likelihood->prob(x_mapped_, true, mtest_);
       if ( TMath::IsNaN(prob) ) prob = 0.;
       return prob;
     }
@@ -69,6 +73,7 @@ namespace svFitStandalone
     void SetMvis(double mvis) { mvis_ = mvis; }
     void SetMtest(double mtest) { mtest_ = mtest; }
   private:
+    const SVfitStandaloneLikelihood* likelihood;
     mutable double x_mapped_[10];
     bool l1isLep_;
     bool l2isLep_;
@@ -83,6 +88,7 @@ namespace svFitStandalone
   class MCObjectiveFunctionAdapter : public ROOT::Math::Functor
   {
    public:
+    MCObjectiveFunctionAdapter(const SVfitStandaloneLikelihood& _likelihood) : likelihood(&_likelihood) {}
     void SetL1isLep(bool l1isLep) { l1isLep_ = l1isLep; }
     void SetL2isLep(bool l2isLep) { l2isLep_ = l2isLep; }
     void SetMarginalizeVisMass(bool marginalizeVisMass) { marginalizeVisMass_ = marginalizeVisMass; }
@@ -94,10 +100,11 @@ namespace svFitStandalone
     virtual double DoEval(const double* x) const
     {
       map_xMarkovChain(x, l1isLep_, l2isLep_, marginalizeVisMass_, shiftVisMass_, shiftVisPt_, x_mapped_);
-      double prob = SVfitStandaloneLikelihood::gSVfitStandaloneLikelihood->prob(x_mapped_);
+      double prob = likelihood->prob(x_mapped_);
       if ( TMath::IsNaN(prob) ) prob = 0.;
       return prob;
-    } 
+    }
+    const SVfitStandaloneLikelihood* likelihood;
     mutable double x_mapped_[10];
     int nDim_;
     bool l1isLep_;
@@ -109,7 +116,8 @@ namespace svFitStandalone
   class MCPtEtaPhiMassAdapter : public ROOT::Math::Functor
   {
    public:
-    MCPtEtaPhiMassAdapter() 
+    MCPtEtaPhiMassAdapter(const SVfitStandaloneLikelihood& _likelihood)
+        : likelihood(&_likelihood)
     {
       histogramPt_ = makeHistogram("SVfitStandaloneAlgorithm_histogramPt", 1., 1.e+3, 1.025);
       histogramPt_density_ = (TH1*)histogramPt_->Clone(Form("%s_density", histogramPt_->GetName()));
@@ -187,7 +195,7 @@ namespace svFitStandalone
     virtual double DoEval(const double* x) const
     {
       map_xMarkovChain(x, l1isLep_, l2isLep_, marginalizeVisMass_, shiftVisMass_, shiftVisPt_, x_mapped_);
-      SVfitStandaloneLikelihood::gSVfitStandaloneLikelihood->results(fittedTauLeptons_, x_mapped_);
+      likelihood->results(fittedTauLeptons_, x_mapped_);
       fittedDiTauSystem_ = fittedTauLeptons_[0] + fittedTauLeptons_[1];
       //std::cout << "<MCPtEtaPhiMassAdapter::DoEval>" << std::endl;
       //std::cout << " Pt = " << fittedDiTauSystem_.pt() << "," 
@@ -205,6 +213,7 @@ namespace svFitStandalone
     } 
    protected:
  //public:
+    const SVfitStandaloneLikelihood* likelihood;
     mutable std::vector<svFitStandalone::LorentzVector> fittedTauLeptons_;
     mutable LorentzVector fittedDiTauSystem_;
     mutable TH1* histogramPt_;
@@ -405,7 +414,7 @@ class SVfitStandaloneAlgorithm
   /// standalone combined likelihood
   svFitStandalone::SVfitStandaloneLikelihood* nll_;
   /// needed to make the fit function callable from within minuit
-  svFitStandalone::ObjectiveFunctionAdapterMINUIT standaloneObjectiveFunctionAdapterMINUIT_;
+  svFitStandalone::ObjectiveFunctionAdapterMINUIT* standaloneObjectiveFunctionAdapterMINUIT_;
 
   /// needed for VEGAS integration
   svFitStandalone::ObjectiveFunctionAdapterVEGAS* standaloneObjectiveFunctionAdapterVEGAS_;   

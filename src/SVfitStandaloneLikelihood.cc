@@ -10,9 +10,9 @@
 using namespace svFitStandalone;
 
 /// global function pointer for minuit or VEGAS
-const SVfitStandaloneLikelihood* SVfitStandaloneLikelihood::gSVfitStandaloneLikelihood = 0;
+//const SVfitStandaloneLikelihood* SVfitStandaloneLikelihood::gSVfitStandaloneLikelihood = 0;
 /// indicate first iteration for integration or fit cycle for debugging
-static bool FIRST = true;
+static constexpr bool FIRST = false;
 
 SVfitStandaloneLikelihood::SVfitStandaloneLikelihood(const std::vector<MeasuredTauLepton>& measuredTauLeptons, const Vector& measuredMET, const TMatrixD& covMET, bool verbosity) 
   : metPower_(1.0), 
@@ -55,7 +55,7 @@ SVfitStandaloneLikelihood::SVfitStandaloneLikelihood(const std::vector<MeasuredT
     errorCode_ |= MatrixInversion;
   }
   // set global function pointer to this
-  gSVfitStandaloneLikelihood = this;
+//  gSVfitStandaloneLikelihood = this;
 }
 
 void 
@@ -332,7 +332,7 @@ SVfitStandaloneLikelihood::prob(const double* xPrime, double phiPenalty) const
   //	        << " TF = " << prob_TF << ", Jacobi = " << jacobiFactor << " --> returning " << prob << std::endl;
   //}
   // set FIRST to false after the first complete evaluation of the likelihood 
-  FIRST = false;
+//  FIRST = false;
   return prob;
 }
 
