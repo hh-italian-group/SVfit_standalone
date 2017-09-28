@@ -392,46 +392,46 @@ SVfitStandaloneAlgorithm::setup()
     // start values for xFrac
     minimizer_->SetLimitedVariable(
       idx*kMaxFitParams + kXFrac, 
-      std::string(TString::Format("leg%i::xFrac", (int)idx + 1)).c_str(), 
+      TString::Format("leg%i::xFrac", (int)idx + 1).Data(),
       0.5, 0.1, 0., 1.);
     // start values for nunuMass (leptonic tau decays only)
     if ( measuredTauLepton.type() == kTauToHadDecay ) { 
       minimizer_->SetFixedVariable(
         idx*kMaxFitParams + kMNuNu, 
-	std::string(TString::Format("leg%i::mNuNu", (int)idx + 1)).c_str(), 
+	TString::Format("leg%i::mNuNu", (int)idx + 1).Data(),
 	0.); 
     } else { 
       minimizer_->SetLimitedVariable(
         idx*kMaxFitParams + kMNuNu, 
-	std::string(TString::Format("leg%i::mNuNu", (int)idx + 1)).c_str(), 
+	TString::Format("leg%i::mNuNu", (int)idx + 1).Data(),
 	0.8, 0.10, 0., svFitStandalone::tauLeptonMass - TMath::Min(measuredTauLepton.mass(), 1.5)); 
     }
     // start values for phi
     minimizer_->SetVariable(
       idx*kMaxFitParams + kPhi, 
-      std::string(TString::Format("leg%i::phi", (int)idx + 1)).c_str(), 
+      TString::Format("leg%i::phi", (int)idx + 1).Data(),
       0.0, 0.25);
     // start values for Pt and mass of visible tau decay products (hadronic tau decays only)
     if ( measuredTauLepton.type() == kTauToHadDecay && (marginalizeVisMass_ || shiftVisMass_) ) {
       minimizer_->SetLimitedVariable(
         idx*kMaxFitParams + kVisMassShifted, 
-        std::string(TString::Format("leg%i::mVisShift", (int)idx + 1)).c_str(), 
+        TString::Format("leg%i::mVisShift", (int)idx + 1).Data(),
         0.8, 0.10, svFitStandalone::chargedPionMass, svFitStandalone::tauLeptonMass);
     } else {
       minimizer_->SetFixedVariable(
         idx*kMaxFitParams + kVisMassShifted, 
-        std::string(TString::Format("leg%i::mVisShift", (int)idx + 1)).c_str(), 
+        TString::Format("leg%i::mVisShift", (int)idx + 1).Data(),
         measuredTauLepton.mass());
     }
     if ( measuredTauLepton.type() == kTauToHadDecay && shiftVisPt_ ) {
       minimizer_->SetLimitedVariable(
         idx*kMaxFitParams + kRecTauPtDivGenTauPt, 
-        std::string(TString::Format("leg%i::tauPtDivGenVisPt", (int)idx + 1)).c_str(), 
+        TString::Format("leg%i::tauPtDivGenVisPt", (int)idx + 1).Data(),
         0., 0.10, -1., +1.5);
     } else {     
       minimizer_->SetFixedVariable(
         idx*kMaxFitParams + kRecTauPtDivGenTauPt, 
-        std::string(TString::Format("leg%i::tauPtDivGenVisPt", (int)idx + 1)).c_str(), 
+        TString::Format("leg%i::tauPtDivGenVisPt", (int)idx + 1).Data(),
         0.);
     }
   }
